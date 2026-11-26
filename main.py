@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
-"""THE WORLD IN ONE PAGE - Thursday 26 November 2026, MORNING EDITION.
+"""THE WORLD IN ONE PAGE - Thursday 26 November 2026, FULL-DAY EDITION.
 
 A newspaper front page drawn entirely in code for the make.fun
 news-image-20261126 bounty. Python standard library only: own 5x7 bitmap
 font, own PNG encoder, no photos, no network, fully deterministic
 (two runs produce byte-identical output).
 
-Run:  python3 main.py        -> writes /output/entry.png (1024x1024)
+All facts come from the full-day research file
+(news26-fullday-research.md), verified to the 08:00 UTC cut-off.
+Weekdays verified with `date`: 26 Nov 2026 is a Thursday,
+25 Nov a Wednesday, 28 Nov a Saturday, 29 Nov a Sunday.
+
+Run:  python3 main.py        -> writes entry.png (1024x1024) next to main.py
 """
 
 import math
@@ -31,8 +36,8 @@ SEA = (214, 228, 238)
 LAND = (226, 214, 180)
 
 # ------------------------------------------------------------- bitmap font --
-# 5x7 glyphs, '1' = ink. Rendered in ALL CAPS; the normaliser below folds
-# accents and punctuation onto glyphs that exist.
+# 5x7 glyphs, '1' = ink. Text is rendered in ALL CAPS; the normaliser
+# below folds accents and punctuation onto glyphs that exist.
 FONT = {
     'A': ("01110", "10001", "10001", "11111", "10001", "10001", "10001"),
     'B': ("11110", "10001", "10001", "11110", "10001", "10001", "11110"),
@@ -292,201 +297,225 @@ def write_png(cv, path):
 
 
 # ----------------------------------------------------------- illustrations --
-def illo_tariffs(cv, x, y, w, h):
-    """Cargo ship stacked with crates, big % flag."""
-    cv.rect(x, y, w, h, (235, 242, 250))
+def illo_ukraine(cv, x, y, w, h):
+    """Two tower blocks under a night burst, shield with a question mark."""
+    cv.rect(x, y, w, h, (236, 238, 244))
     cv.rect(x, y, w, h, MID, fill=False)
-    cv.hline(x + 8, y + h - 22, w - 16, BLUE, 2)
-    cv.hline(x + 30, y + h - 14, w - 60, BLUE, 2)
-    cv.tri([(x + 30, y + h - 34), (x + w - 30, y + h - 34),
-            (x + w - 58, y + h - 20)], RED)
-    cv.rect(x + 30, y + h - 48, w - 60, 14, RED)
-    cx0 = x + 52
-    for i in range(3):
-        cv.rect(cx0 + i * 52, y + h - 48 - 34, 46, 30, GOLD, fill=False)
-        cv.line(cx0 + i * 52, y + h - 48 - 34, cx0 + i * 52 + 46,
-                y + h - 48 - 4, GOLD)
-        cv.line(cx0 + i * 52 + 46, y + h - 48 - 34, cx0 + i * 52,
-                y + h - 48 - 4, GOLD)
-    cv.rect(x + w - 92, y + 16, 34, 34, INK)
-    draw_text(cv, x + w - 88, y + 22, "%", 2, PAPER)
-    draw_text(cv, x + 14, y + 10, "14 PARTNERS", 1, BLUE)
+    # burst of rays over the roofs
+    cx, cy = x + 62, y + 24
+    for k in range(8):
+        ang = k * math.pi / 4.0 + math.pi / 8.0
+        ex = int(cx + 24 * math.cos(ang))
+        ey = int(cy + 24 * math.sin(ang))
+        cv.line(cx, cy, ex, ey, GOLD)
+    cv.circle(cx, cy, 6, RED)
+    # left tower block
+    bx, by = x + 18, y + h - 64
+    cv.rect(bx, by, 52, 44, INK, fill=False)
+    for wy in (by + 8, by + 22):
+        for wx in (bx + 7, bx + 22, bx + 36):
+            cv.rect(wx, wy, 9, 8, BLUE, fill=False)
+    # right tower block, shorter
+    bx2, by2 = x + 82, y + h - 52
+    cv.rect(bx2, by2, 46, 32, INK, fill=False)
+    for wy in (by2 + 7,):
+        for wx in (bx2 + 7, bx2 + 22):
+            cv.rect(wx, wy, 9, 8, BLUE, fill=False)
+    # shield, lower right
+    sx, sy = x + w - 62, y + h - 48
+    cv.tri([(sx, sy), (sx + 34, sy), (sx + 17, sy + 34)], BLUE)
+    draw_text(cv, sx + 11, sy + 10, "?", 2, PAPER)
+    draw_text(cv, x + 12, y + 8, "KYIV - KHARKIV", 1, BLUE)
 
 
 def illo_gulf(cv, x, y, w, h):
-    """Refinery towers, flame and smoke plume, missile streak."""
+    """Refinery flare stacks, a flame, drifting smoke, a missile streak."""
     cv.rect(x, y, w, h, (250, 238, 226))
     cv.rect(x, y, w, h, MID, fill=False)
-    # ground
-    cv.hline(x + 8, y + h - 20, w - 16, INK, 2)
-    # refinery towers
-    for tx in (x + 22, x + 52, x + 82):
-        cv.rect(tx, y + h - 62, 22, 42, INK, fill=False)
-        cv.line(tx + 4, y + h - 62, tx + 11, y + h - 78, INK)
-        cv.line(tx + 18, y + h - 62, tx + 11, y + h - 78, INK)
-    # flame on middle tower
-    fx, fy = x + 63, y + h - 92
+    # ground line
+    cv.hline(x + 8, y + h - 18, w - 16, INK, 2)
+    # two flare stacks with cross braces
+    for tx in (x + 26, x + 62):
+        cv.rect(tx, y + h - 58, 20, 40, INK, fill=False)
+        cv.line(tx + 2, y + h - 58, tx + 18, y + h - 18, INK)
+        cv.line(tx + 18, y + h - 58, tx + 2, y + h - 18, INK)
+    # flame on the left stack
+    fx, fy = x + 36, y + h - 76
     cv.tri([(fx, fy), (fx - 8, fy + 18), (fx + 8, fy + 18)], RED)
-    cv.tri([(fx, fy + 6), (fx - 5, fy + 18), (fx + 5, fy + 18)], GOLD)
-    # smoke plume drifting right
-    for (px, py, pr) in [(x + 150, y + 30, 8), (x + 168, y + 44, 11),
-                         (x + 186, y + 60, 13), (x + 200, y + 78, 10)]:
+    cv.tri([(fx, fy + 6), (fx - 4, fy + 18), (fx + 4, fy + 18)], GOLD)
+    # storage tank, right side
+    tx, ty = x + 108, y + h - 48
+    cv.rect(tx, ty, 52, 30, INK, fill=False)
+    cv.line(tx, ty, tx + 52, ty, INK)
+    # smoke plume drifting up-right
+    for (px, py, pr) in [(x + 132, y + 26, 7), (x + 148, y + 38, 10),
+                         (x + 164, y + 52, 12), (x + 176, y + 68, 9)]:
         cv.circle(px, py, pr, GREY)
-    # missile streak
-    mx, my = x + w - 66, y + 18
-    cv.line(mx, my, mx + 34, my + 20, RED)
-    cv.tri([(mx + 34, my + 20), (mx + 22, my + 14), (mx + 24, my + 26)], RED)
-    draw_text(cv, x + 14, y + 8, "RAS TANURA", 2, RED)
+    # missile streak, top right
+    mx, my = x + w - 58, y + 14
+    cv.line(mx, my, mx + 30, my + 18, RED)
+    cv.tri([(mx + 30, my + 18), (mx + 19, my + 12), (mx + 21, my + 24)], RED)
+    draw_text(cv, x + 12, y + 8, "RIYADH", 2, RED)
 
 
-def illo_ukraine(cv, x, y, w, h):
-    """City building under a burst, shield below."""
-    cv.rect(x, y, w, h, (236, 238, 244))
+def illo_cairo(cv, x, y, w, h):
+    """A fuel tanker on a ring road, flames above the tank, black smoke."""
+    cv.rect(x, y, w, h, (250, 240, 228))
     cv.rect(x, y, w, h, MID, fill=False)
-    # building
-    bx, by = x + 34, y + h - 66
-    cv.rect(bx, by, 66, 46, INK, fill=False)
-    for wy in (by + 8, by + 24):
-        for wx in (bx + 8, bx + 26, bx + 44):
-            cv.rect(wx, wy, 12, 10, BLUE, fill=False)
-    # burst above the roof
-    cx, cy = bx + 33, y + 26
-    for k in range(8):
-        ang = k * math.pi / 4.0
-        ex = int(cx + 26 * math.cos(ang))
-        ey = int(cy + 26 * math.sin(ang))
-        cv.line(cx, cy, ex, ey, GOLD)
-    cv.circle(cx, cy, 6, RED)
-    # shield
-    sx, sy = x + w - 74, y + h - 56
-    cv.tri([(sx, sy), (sx + 40, sy), (sx + 20, sy + 40)], BLUE)
-    draw_text(cv, sx + 14, sy + 12, "?", 2, PAPER)
-    draw_text(cv, x + 14, y + 8, "KYIV", 2, BLUE)
+    # road
+    cv.hline(x + 8, y + h - 26, w - 16, INK, 2)
+    for dx in range(0, w - 24, 22):
+        cv.hline(x + 12 + dx, y + h - 20, 12, GOLD, 2)
+    # tanker body: long cylinder tank + cab
+    tx, ty = x + 22, y + h - 62
+    cv.rect(tx, ty, 104, 26, INK, fill=False)
+    cv.circle(tx + 52, ty + 13, 13, INK, fill=False)
+    cv.rect(tx + 108, ty + 4, 30, 22, RED)
+    cv.rect(tx + 116, ty + 10, 14, 8, PAPER)
+    # wheels
+    for wx in (tx + 22, tx + 62, tx + 96, tx + 122):
+        cv.circle(wx, y + h - 30, 6, INK)
+        cv.circle(wx, y + h - 30, 2, PAPER)
+    # flames above the tank
+    for (fx, fy, fs) in [(tx + 34, ty - 22, 12), (tx + 58, ty - 30, 14),
+                         (tx + 84, ty - 20, 11)]:
+        cv.tri([(fx, fy - fs), (fx - 7, fy + 6), (fx + 7, fy + 6)], RED)
+        cv.tri([(fx, fy - fs + 5), (fx - 4, fy + 6), (fx + 4, fy + 6)], GOLD)
+    # smoke
+    for (px, py, pr) in [(x + 150, y + 18, 8), (x + 164, y + 30, 11),
+                         (x + 176, y + 46, 10)]:
+        cv.circle(px, py, pr, DGREY)
+    draw_text(cv, x + 12, y + 8, "CAIRO RING ROAD", 1, RED)
 
 
 # -------------------------------------------------------------------- data --
 MASTHEAD = "THE WORLD IN ONE PAGE"
-SUBTITLE = "THURSDAY 26 NOVEMBER 2026 - MORNING EDITION - VERIFIED TO 08:00 CST"
+SUBTITLE = "THURSDAY 26 NOVEMBER 2026 - FULL-DAY EDITION - VERIFIED TO 08:00 UTC"
 STRIP = "27 STORIES - 3 LEADS - 10 SECONDARIES - 14 IN BRIEF - 8 PINS ON MAP"
 
 TIMELINE = [
-    ("THU 26 NOV 00:12 GMT", "WASHINGTON POST FIRST REPORTS TRUMP TARIFFS"),
-    ("WED 25 NOV 10:15 LOCAL", "ARMY DETONATES 4,500 KG OF LEAD AZIDE IN IOWA"),
-    ("WED 25 NOV", "RUSSIAN MISSILE HITS KYIV SHOPPING MALL"),
-    ("WED 25 NOV OVERNIGHT", "HOUTHI MISSILE INTERCEPTED OVER RIYADH"),
-    ("WED 25 NOV 00:18 GMT", "SHENZHOU-24 LIFTS OFF WITH PAKISTAN'S FIRST ASTRONAUT"),
-    ("THU 26 NOV 01:05 KYIV", "ZELENSKY: NO GOOD NEWS ON INTERCEPTORS"),
+    ("THU 26 NOV OVERNIGHT", "RUSSIA LAUNCHES 113 DRONES AT UKRAINE"),
+    ("THU 26 NOV", "SAUDI ARABIA INTERCEPTS MISSILES OVER RIYADH"),
+    ("WED 25 NOV LATE", "CAIRO TANKER FIRE KILLS AT LEAST 30"),
+    ("WED 25 NOV", "USTR PROPOSES TARIFFS ON 14 ECONOMIES"),
+    ("SAT 28 NOV 08:30 ET", "MACY'S 100TH PARADE MOVES TO SATURDAY"),
+    ("SUN 29 NOV", "SPAIN HOLDS SNAP GENERAL ELECTION"),
 ]
 
 LEADS = [
-    dict(kicker="LEAD 1 - WASHINGTON - ANNOUNCED 25 NOV",
-         illo=illo_tariffs,
-         head="TRUMP UNVEILS NEW TARIFFS ON 14 PARTNERS",
-         sub=("Announced 25 Nov; China up to 40%, Vietnam up to 35%, others "
-              "20-25%; tariffs take effect in 2027 - not today"),
-         facts=[
-             "Announced Wednesday in Washington, first reported 00:12 GMT. "
-             "14 partners including the EU, Japan, India, Taiwan and South Korea.",
-             "Legal basis: a March 2026 White House 'overcapacity' probe. It "
-             "follows a Supreme Court ruling that 'Liberation Day' tariffs were "
-             "illegal; about $100B was refunded.",
-             "The EU is opposed and says the agreed cap was 15%. The "
-             "US-China trade-war ceasefire expires on 10 Jan 2027.",
-         ],
-         tag="ANNOUNCED 25 NOV - IN FORCE 2027",
-         src="Sources: BBC - Washington Post - CNBC - NPR - Al Jazeera"),
-    dict(kicker="LEAD 2 - THE GULF - ATTACKS CONFIRMED",
-         illo=illo_gulf,
-         head="GULF WAR WIDENS: HOUTHIS HIT RIYADH AND RAS TANURA",
-         sub=("Missile intercepted over Riyadh; tanker mined in Hormuz; "
-              "UK sends Typhoon jets to Saudi Arabia"),
-         facts=[
-             "Overnight explosions in Sanaa; the Saudi-led coalition "
-             "intercepted a Houthi ballistic missile heading for Riyadh.",
-             "The Houthis CLAIM a strike on the Ras Tanura refinery; "
-             "satellite images show a large smoke plume. The claim is not "
-             "independently verified.",
-             "A tanker hit a mine in the Strait of Hormuz and caught fire; "
-             "Iran says 3 ships hit mines. The PIF Tower was hit, 11 injured.",
-         ],
-         tag="DAMAGE CLAIMS UNVERIFIED",
-         src="Sources: Al Jazeera live - Reuters / Planet Labs - UKMTO"),
-    dict(kicker="LEAD 3 - UKRAINE - LEAK PUBLISHED",
+    dict(kicker="LEAD 1 - UKRAINE - OVERNIGHT ASSAULT CONFIRMED",
          illo=illo_ukraine,
-         head="LEAK PUTS RUSSIAN WAR DEAD NEAR 500,000",
-         sub=("Registry data published; Kyiv mall hit; US said to rule out "
-              "troops in any postwar guarantee"),
+         head="RUSSIA HITS UKRAINE WITH MISSILES AND 113 DRONES",
+         sub=("Kyiv mall hit, 7 injured; Kharkiv high-rise struck, "
+              "2 dead and 3 hurt"),
          facts=[
-             "Leaked Russian registry data puts Russian soldiers dead at about "
-             "490,000-500,000. Western estimates top 700,000 - a different "
-             "method; do not mix the figures.",
-             "A Russian ballistic missile hit a Kyiv shopping mall, at least "
-             "3-4 injured; blackouts in 5 regions; the Zaporizhzhia plant "
-             "lost external power a 17th time.",
-             "A US envoy privately said postwar guarantees exclude US troops "
-             "and bases - reported, not formally announced. Zelensky: "
-             "'not yet on paper'.",
+             "Russian forces launched ballistic missiles and 113 strike "
+             "drones overnight; air defences destroyed or suppressed 87 "
+             "by 08:00 Kyiv time.",
+             "Hits at 20 locations, debris at six. In Kyiv a ballistic "
+             "missile hit a shopping mall in the Desnianskyi district, "
+             "injuring seven people.",
+             "In Kharkiv a Shahed drone struck a high-rise in the "
+             "Novobavarskyi district, killing two and injuring three; "
+             "a fire burned on the 15th floor.",
          ],
-         tag="US POSITION REPORTED, NOT ANNOUNCED",
-         src="Sources: CBS - BBC - The Guardian - Le Monde - Kyiv Independent"),
+         tag="CONFIRMED - UKRAINIAN AIR FORCE",
+         src="Sources: Ukrainian Air Force - Kyiv city administration"),
+    dict(kicker="LEAD 2 - THE GULF - INTERCEPTS CONFIRMED",
+         illo=illo_gulf,
+         head="SAUDI ARABIA INTERCEPTS MISSILES AIMED AT RIYADH",
+         sub=("Jazan port hit; Ras Tanura refinery damage still only "
+              "a Houthi claim"),
+         facts=[
+             "Saudi air defences intercepted two ballistic missiles fired "
+             "towards Riyadh and two drones over the Eastern Province, "
+             "the coalition said.",
+             "A projectile struck Jazan port, minor damage and no civilian "
+             "casualties. A cruise missile aimed at the west and a drone "
+             "near Jeddah were also intercepted.",
+             "The Houthis CLAIM a strike on the Ras Tanura refinery and "
+             "'significant damage' in Riyadh's financial district. "
+             "Neither is independently verified.",
+         ],
+         tag="REFINERY DAMAGE CLAIMED, NOT CONFIRMED",
+         src="Sources: Saudi-led coalition - Reuters"),
+    dict(kicker="LEAD 3 - CAIRO - TANKER FIRE CONFIRMED",
+         illo=illo_cairo,
+         head="CAIRO TANKER FIRE KILLS AT LEAST 30",
+         sub=("Tanker overturns on ring road; 27 vehicles burned, "
+              "39 ambulances sent"),
+         facts=[
+             "At least 30 people were killed and 25 injured when a fuel "
+             "tanker overturned and caught fire on Cairo's ring road "
+             "late on 25 November.",
+             "A later count put the toll at 31. The tanker crashed above "
+             "a tunnel in Al Warraq, Giza; 27 vehicles burned and DNA "
+             "testing was ordered.",
+             "President El Sisi offered condolences and ordered support "
+             "for the injured and victims' families. 39 ambulances "
+             "responded.",
+         ],
+         tag="DEATH TOLL 30, LATER COUNT 31",
+         src="Sources: AP - Egypt public prosecutor - The National"),
 ]
 
 SECONDARIES = [
-    ("AI SELL-OFF DEEPENS",
-     "Nasdaq -0.6%, Nvidia -3.4% after an 8% intraday slide; Anthropic falls "
-     "below its $83 IPO price; Amazon down over 3%."),
-    ("NETANYAHU CASE IN DOUBT",
-     "Judge asks the attorney general to reconsider the bribery case; formal "
-     "dismissal or a plea deal now expected."),
-    ("XI PURGE REACHES SHANGHAI",
-     "Politburo member Chen Jining under investigation - the 4th sitting "
-     "member probed; plenum expelled a record 33."),
-    ("IOWA BLAST 'EXTREMELY SUCCESSFUL'",
-     "Army says 4,500 kg of lead azide went up cleanly at 10:15 local; no "
-     "damage, EPA monitors recorded zero detections."),
-    ("MACY'S PARADE POSTPONED",
-     "100th Thanksgiving parade moves to Saturday after a storm brings 60 "
-     "mph gusts; first weather delay in its history."),
-    ("KING TIDES BATTER CALIFORNIA",
-     "Strongest El Nino on record drives coastal flooding into 'uncharted "
-     "territory'; Pacifica pier partly collapses."),
-    ("CAIRO TANKER FIRE KILLS 31",
-     "Fuel tanker overturns and catches fire in Imbaba, Giza; at least 31 "
-     "dead, 21 hurt, 27 vehicles burned."),
-    ("76 HOSTAGES FREED IN CARTAGENA",
-     "Police storm an Exito supermarket after a 17-hour standoff; one "
-     "gunman killed; Petro calls it a failed robbery."),
-    ("N. KOREA EXPELS SWISS ENVOY",
-     "Top Swiss diplomat ordered out within 48 hours; trigger was Swiss "
-     "sanctions on a children's camp in Wonsan."),
-    ("COP31 REBOUNDS AFTER COLLAPSE",
-     "Longest-ever UN climate summit ended 22 Nov in Antalya with no deal - "
-     "the first since Copenhagen 2009; talks resume."),
+    ("TRUMP MEETS RUTTE",
+     "Trump and NATO chief Mark Rutte met at Mar-a-Lago; Russia's war and "
+     "Iran topped the agenda; defence spending must expand."),
+    ("US TARIFFS PROPOSED",
+     "USTR proposes Section 301 tariffs on 14 economies incl. China, EU, "
+     "Vietnam; not in effect; comments due 5 Jan, hearings from 25 Jan 2027."),
+    ("MUSK GIVES SPACEX SHARES",
+     "Every US child to get two SpaceX shares, one from the firm and one "
+     "from Musk; Reuters values the gift at about $18bn."),
+    ("CHEN JINING PROBED",
+     "China's anti-graft bodies investigate Politburo member and Shanghai "
+     "party chief Chen Jining for suspected severe violations."),
+    ("HUAWEI CONVICTED",
+     "Brooklyn jury convicts Huawei and 3 units on 10 of 12 counts incl. "
+     "sanctions violations and fraud; sentencing 14 Sep 2027."),
+    ("KIM INSPECTS NUCLEAR SITES",
+     "Kim Jong Un inspects nuclear material production and calls for wider "
+     "deployment of tactical nuclear weapons."),
+    ("UNRWA RULING",
+     "UN tribunal says UNRWA relied on unproven Israeli claims to sack nine "
+     "staff in 2024; one dismissal rescinded."),
+    ("EU SUMMIT ON BUDGET",
+     "EU leaders meet Thu-Fri seeking a December deal on a nearly 1.6tn "
+     "euro 2028-34 budget and up to 100bn euro for Ukraine."),
+    ("SPAIN VOTES SUNDAY",
+     "Spain holds a snap general election on Sunday 29 Nov; People's Party "
+     "ahead in polls, may need Vox for a majority."),
+    ("UN WARNS OF ATROCITIES",
+     "UN rights chief Volker Turk warns Israeli attacks and policies point "
+     "to a widening risk of further atrocity crimes."),
 ]
 
 ALSO_ON = [
-    "ABREGO GARCIA ARRIVES IN SPAIN",
-    "SPAIN VOTES SUNDAY 29 NOV",
-    "SOLOMONS END CHINA PACT",
-    "RAMAPHOSA SURVIVES VOTE",
-    "HAMAS SECURITY CHIEF KILLED",
-    "SHENZHOU-24 LAUNCHES",
-    "PLANE CRASH KILLS 6 IN US",
-    "SPACEX STARMIND APPROVED",
-    "HUAWEI GUILTY OF THEFT",
-    "US TO BLACKLIST MEGASPEED",
-    "RECORD MIGRANT DAY IN CANARIES",
-    "2 LIBYAN OFFICERS KILLED",
-    "BAGHDAD TAKES KURD FIELDS",
-    "UK SANCTIONS MYANMAR GENERALS",
+    "OIL BRENT $94.61, UP 3.5%",
+    "IOWA BLAST: ZERO LEAD FOUND",
+    "MACY'S PARADE MOVES TO SAT",
+    "795 FLEE IN SUDAN IN ONE DAY",
+    "POPE URGES LEADERS: BREAK CHAINS",
+    "TIDAL TO BAN AI MUSIC 9 DEC",
+    "NEW YORK BANS AI TOYS 5 YEARS",
+    "FCC APPROVES 1M SATELLITES",
+    "POLAND PLANS NO-FLY ZONE",
+    "PUTIN SACKS MURMANSK GOVERNOR",
+    "US OKAYS $621.9M F-16 SALE",
+    "BBC STAFF VOTE TO STRIKE",
+    "IRAQ DIALOGUE SET FOR 1 DEC",
+    "NVIDIA RATING ON WATCH",
 ]
 
 DATE_CHECK = [
     "DATE CHECK - 26 NOVEMBER 2026 IS A THURSDAY. STORIES THAT BROKE ON "
     "OTHER DAYS ARE NOT IN THIS EDITION.",
-    "TARIFFS WERE ANNOUNCED 25 NOV AND TAKE EFFECT IN 2027. HOUTHI DAMAGE "
-    "CLAIMS ARE UNVERIFIED. US 'NO TROOPS' POSITION IS REPORTED, NOT ANNOUNCED.",
+    "TARIFFS WERE PROPOSED 25 NOV AND ARE NOT IN EFFECT. RAS TANURA DAMAGE "
+    "IS A CLAIM, NOT CONFIRMED. CAIRO TOLL: 30, LATER COUNT 31.",
 ]
+
 
 # --------------------------------------------------------------------- map --
 # Rough equirectangular land outlines (lon, lat). Schematic, not survey-grade.
@@ -543,13 +572,13 @@ LAND_POLYS = [NORTH_AMERICA, GREENLAND, SOUTH_AMERICA, EURASIA, AFRICA,
 
 PINS = [
     (1, -77, 39, "WASHINGTON", 0, 0),
-    (2, 47, 25, "RIYADH", -2, 8),
-    (3, 56, 26, "HORMUZ", 10, -4),
-    (4, 30, 50, "KYIV", 0, -6),
-    (5, 35, 31, "GAZA", -10, -6),
-    (6, 121, 31, "SHANGHAI", 0, 0),
-    (7, -91, 41, "IOWA", 0, 0),
-    (8, 31, 30, "CAIRO", 4, 8),
+    (2, 47, 25, "RIYADH", -4, 6),
+    (3, 42, 17, "JAZAN", 8, -2),
+    (4, 30, 50, "KYIV", -2, -8),
+    (5, 36, 50, "KHARKIV", 8, 6),
+    (6, 31, 30, "CAIRO", 4, 6),
+    (7, 121, 31, "SHANGHAI", 0, 0),
+    (8, -91, 41, "IOWA", 0, 0),
 ]
 
 
@@ -593,7 +622,7 @@ def draw_map(cv, x, y, w, h):
     # land
     for poly in LAND_POLYS:
         fill_poly(cv, [proj(lon, lat) for lon, lat in poly], LAND)
-    # pins (dx, dy nudge apart the clustered Middle East pins)
+    # pins (dx, dy nudge apart the clustered Middle East / Ukraine pins)
     for num, lon, lat, _name, dx, dy in PINS:
         px, py = proj(lon, lat)
         px += dx
@@ -602,7 +631,7 @@ def draw_map(cv, x, y, w, h):
         cv.circle(px, py, 6, PAPER, fill=False)
         draw_text(cv, px - 2, py - 3, str(num), 1, PAPER)
     # legend
-    legend = "1 WASHINGTON  2 RIYADH  3 HORMUZ  4 KYIV  5 GAZA  6 SHANGHAI  7 IOWA  8 CAIRO"
+    legend = "1 WASHINGTON  2 RIYADH  3 JAZAN  4 KYIV  5 KHARKIV  6 CAIRO  7 SHANGHAI  8 IOWA"
     draw_text(cv, x, y + h + 4, legend, 1, DGREY)
 
 
@@ -688,9 +717,9 @@ def main():
         fy += 10
     cv.hline(M, 1010, CW, INK, 3)
 
-    os.makedirs("/output", exist_ok=True)
-    size = write_png(cv, "/output/entry.png")
-    print("wrote /output/entry.png  %d bytes  %dx%d" % (size, W, H))
+    out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "entry.png")
+    size = write_png(cv, out)
+    print("wrote %s  %d bytes  %dx%d" % (out, size, W, H))
 
 
 if __name__ == "__main__":
